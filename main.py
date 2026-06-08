@@ -2,8 +2,9 @@ import os
 from slack_bolt import App
 from dotenv import load_dotenv
 from config import init_environment
+from logger import log_activity
 
-#automatically run the automation check
+# Automatically run the automation check
 BOT_TOKEN, SIGNING_SECRET = init_environment()
 
 app = App(
@@ -12,22 +13,28 @@ app = App(
 )
 
 @app.command("/ping")
-def handle_ping(ack, say):
+def handle_ping(ack, body, say): 
     ack()
-    say("Conection succesfull! VOIDBOT is active.")
+    user = body.get("user_id")    
+    log_activity("/ping", user)   
+    say("Connection successful! VOIDBOT is active.")
 
 @app.command("/about")
-def handle_about(ack, say):
+def handle_about(ack, body, say): 
     ack()
+    user = body.get("user_id")
+    log_activity("/about", user)
     say(
         "Hello, Im VOIDBOT\n"
         "I was created by @otzpt/otzpt_dev, I'm his first slackbot project\n"
         "I'm being programmed in Python!!"
     )
+
 @app.command("/voidtune")
-def handle_voidtune(ack, say):
-    ack()
-    say (
+def handle_voidtune(ack, body, say):
+    user = body.get("user_id")
+    log_activity("/voidtune", user)
+    say(
         "Advanced VOIDTUNE Module\n"
         "Current Status: Listening for OS diagnostic flags.\n"
         "Planned actions:\n"
