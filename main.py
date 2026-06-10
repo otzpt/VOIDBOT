@@ -1,6 +1,7 @@
 import os
+import sys
 from slack_bolt import App
-from dotenv import load_dotenv
+from slack_bolt.adapter.socket_mode import SocketModeHandler  # <-- Importação do Socket Mode
 from config import init_environment
 from logger import log_activity
 
@@ -12,28 +13,29 @@ app = App(
     signing_secret=SIGNING_SECRET
 )
 
-@app.command("/ping")
+@app.command("/vt-ping")
 def handle_ping(ack, body, say): 
     ack()
     user = body.get("user_id")    
-    log_activity("/ping", user)   
+    log_activity("/vt-ping", user)   
     say("Connection successful! VOIDBOT is active.")
 
-@app.command("/about")
+@app.command("/vt-about")
 def handle_about(ack, body, say): 
     ack()
     user = body.get("user_id")
-    log_activity("/about", user)
+    log_activity("/vt-about", user)
     say(
         "Hello, Im VOIDBOT\n"
         "I was created by @otzpt/otzpt_dev, I'm his first slackbot project\n"
         "I'm being programmed in Python!!"
     )
 
-@app.command("/voidtune")
+@app.command("/vt-voidtune")
 def handle_voidtune(ack, body, say):
+    ack()
     user = body.get("user_id")
-    log_activity("/voidtune", user)
+    log_activity("/vt-voidtune", user)
     say(
         "Advanced VOIDTUNE Module\n"
         "Current Status: Listening for OS diagnostic flags.\n"
@@ -45,4 +47,10 @@ def handle_voidtune(ack, body, say):
     )
 
 if __name__ == "__main__":
-    app.start(port=3000)
+    try:
+        print("⚡ VOIDBOT backend engine is starting in Socket Mode...")
+        handler = SocketModeHandler(app, os.environ.get("SLACK_APP_TOKEN"))
+        handler.start()
+    except KeyboardInterrupt:
+        print("\n👋 VOIDBOT server shut down gracefully. See you soon!")
+        sys.exit(0)
