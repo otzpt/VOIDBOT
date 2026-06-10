@@ -1,11 +1,12 @@
 import os
 import sys
+import threading
+from http.server import SimpleHTTPRequestHandler, HTTPServer
 from slack_bolt import App
-from slack_bolt.adapter.socket_mode import SocketModeHandler  # <-- Importação do Socket Mode
+from slack_bolt.adapter.socket_mode import SocketModeHandler
 from config import init_environment
 from logger import log_activity
 
-# Automatically run the automation check
 BOT_TOKEN, SIGNING_SECRET = init_environment()
 
 app = App(
@@ -24,7 +25,7 @@ def handle_ping(ack, body, say):
 def handle_about(ack, body, say): 
     ack()
     user = body.get("user_id")
-    log_activity("/vt-about", user)
+    log_activity("/vt-about", user)  
     say(
         "Hello, Im VOIDBOT\n"
         "I was created by @otzpt/otzpt_dev, I'm his first slackbot project\n"
@@ -33,9 +34,9 @@ def handle_about(ack, body, say):
 
 @app.command("/vt-voidtune")
 def handle_voidtune(ack, body, say):
-    ack()
+    ack()  
     user = body.get("user_id")
-    log_activity("/vt-voidtune", user)
+    log_activity("/vt-voidtune", user) 
     say(
         "Advanced VOIDTUNE Module\n"
         "Current Status: Listening for OS diagnostic flags.\n"
@@ -46,9 +47,20 @@ def handle_voidtune(ack, body, say):
         "Run with caution inside your Linux/Windows environment!"
     )
 
+def run_health_check_server():
+    port = int(os.environ.get("PORT", 7860))
+    server_address = ("", port)
+    httpd = HTTPServer(server_address, SimpleHTTPRequestHandler)
+    print(f"Health check server online on port {port}...")
+    httpd.serve_forever()
+
 if __name__ == "__main__":
     try:
-        print("⚡ VOIDBOT backend engine is starting in Socket Mode...")
+        print("VOIDBOT backend engine is starting in Socket Mode...")
+        
+        health_thread = threading.Thread(target=run_health_check_server, daemon=True)
+        health_thread.start()
+        
         handler = SocketModeHandler(app, os.environ.get("SLACK_APP_TOKEN"))
         handler.start()
     except KeyboardInterrupt:
